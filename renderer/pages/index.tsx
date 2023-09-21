@@ -4,7 +4,7 @@ import { Button } from "../components/ui/button";
 function Home() {
   return (
     <>
-      <Button>Button test</Button>
+      <Button></Button>
     </>
   );
 }
