@@ -1,6 +1,9 @@
 import { app } from "electron";
 import serve from "electron-serve";
 import { createWindow } from "./helpers";
+import checkLogin from "./auth/checkLogin";
+import dotenv from "dotenv";
+dotenv.config();
 
 const isProd: boolean = process.env.NODE_ENV === "production";
 
@@ -13,11 +16,39 @@ if (isProd) {
 (async () => {
   await app.whenReady();
 
+  await checkLogin()
+    .then(async (r) => {
+      if (r) await showMain();
+      else await showLogin();
+    })
+    .catch((err) => {
+      console.log(err);
+      showLogin();
+    });
+})();
+
+async function showLogin() {
+  const loginWindow = createWindow("login", {
+    width: 400,
+    height: 600,
+    center: true,
+    titleBarStyle: "hiddenInset",
+  });
+
+  if (isProd) {
+    await loginWindow.loadURL("app://./login.html");
+  } else {
+    const port = process.argv[2];
+    await loginWindow.loadURL(`http://localhost:${port}/login`);
+  }
+}
+
+async function showMain() {
   const mainWindow = createWindow("main", {
     width: 1000,
     height: 600,
     darkTheme: true,
-    titleBarStyle: "hiddenInset",
+    titleBarStyle: "default",
   });
 
   if (isProd) {
@@ -27,7 +58,7 @@ if (isProd) {
     await mainWindow.loadURL(`http://localhost:${port}/`);
     // mainWindow.webContents.openDevTools();
   }
-})();
+}
 
 app.on("window-all-closed", () => {
   app.quit();

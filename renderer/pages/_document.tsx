@@ -9,7 +9,7 @@ export default function Document() {
           href="https://kit-pro.fontawesome.com/releases/v6.3.0/css/pro.min.css"
         />
       </Head>
-      <body className="mt-10 bg-background">
+      <body className="bg-background">
         <Main />
         <NextScript />
       </body>
