@@ -1,11 +1,7 @@
-import {
-  screen,
-  BrowserWindow,
-  BrowserWindowConstructorOptions,
-} from 'electron';
+import { screen, BrowserWindow, BrowserWindowConstructorOptions } from 'electron';
 import Store from 'electron-store';
 
-export default (windowName: string, options: BrowserWindowConstructorOptions): BrowserWindow => {
+export const createWindow = (windowName: string, options: BrowserWindowConstructorOptions): BrowserWindow => {
   const key = 'window-state';
   const name = `window-state-${windowName}`;
   const store = new Store({ name });
@@ -14,7 +10,6 @@ export default (windowName: string, options: BrowserWindowConstructorOptions): B
     height: options.height,
   };
   let state = {};
-  let win;
 
   const restore = () => store.get(key, defaultSize);
 
@@ -46,8 +41,8 @@ export default (windowName: string, options: BrowserWindowConstructorOptions): B
     });
   };
 
-  const ensureVisibleOnSomeDisplay = windowState => {
-    const visible = screen.getAllDisplays().some(display => {
+  const ensureVisibleOnSomeDisplay = (windowState) => {
+    const visible = screen.getAllDisplays().some((display) => {
       return windowWithinBounds(windowState, display.bounds);
     });
     if (!visible) {
@@ -76,7 +71,7 @@ export default (windowName: string, options: BrowserWindowConstructorOptions): B
       ...options.webPreferences,
     },
   };
-  win = new BrowserWindow(browserOptions);
+  const win = new BrowserWindow(browserOptions);
 
   win.on('close', saveState);
 

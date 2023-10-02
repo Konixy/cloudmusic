@@ -1,16 +1,18 @@
-import { app } from "electron";
-import serve from "electron-serve";
-import { createWindow } from "./helpers";
-import checkLogin from "./auth/checkLogin";
-import dotenv from "dotenv";
+import { TouchBar, app } from 'electron';
+import serve from 'electron-serve';
+import { createWindow } from './helpers';
+import checkLogin from './auth/checkLogin';
+import dotenv from 'dotenv';
+import login from './auth/login';
 dotenv.config();
 
-const isProd: boolean = process.env.NODE_ENV === "production";
+export const isProd: boolean = process.env.NODE_ENV === 'production';
+const port = process.argv[2];
 
 if (isProd) {
-  serve({ directory: "app" });
+  serve({ directory: 'app', scheme: 'cloudmusic' });
 } else {
-  app.setPath("userData", `${app.getPath("userData")} (development)`);
+  app.setPath('userData', `${app.getPath('userData')} (development)`);
 }
 
 (async () => {
@@ -19,47 +21,44 @@ if (isProd) {
   await checkLogin()
     .then(async (r) => {
       if (r) await showMain();
-      else await showLogin();
+      else await login();
     })
     .catch((err) => {
       console.log(err);
-      showLogin();
+      login();
     });
 })();
 
-async function showLogin() {
-  const loginWindow = createWindow("login", {
-    width: 400,
-    height: 600,
-    center: true,
-    titleBarStyle: "hiddenInset",
-  });
-
-  if (isProd) {
-    await loginWindow.loadURL("app://./login.html");
-  } else {
-    const port = process.argv[2];
-    await loginWindow.loadURL(`http://localhost:${port}/login`);
-  }
-}
-
 async function showMain() {
-  const mainWindow = createWindow("main", {
+  const mainWindow = createWindow('main', {
     width: 1000,
     height: 600,
     darkTheme: true,
-    titleBarStyle: "default",
+    titleBarStyle: 'default',
   });
 
+  const touchbar = new TouchBar({
+    items: [
+      new TouchBar.TouchBarButton({
+        icon: isProd ? 'cloudmusic://./close-icon.png' : `${__dirname}/close-icon.png`,
+        click: () => {
+          app.quit();
+        },
+        iconPosition: 'overlay',
+      }),
+    ],
+  });
+
+  mainWindow.setTouchBar(touchbar);
+
   if (isProd) {
-    await mainWindow.loadURL("app://./index.html");
+    await mainWindow.loadURL('cloudmusic://./index.html');
   } else {
-    const port = process.argv[2];
     await mainWindow.loadURL(`http://localhost:${port}/`);
     // mainWindow.webContents.openDevTools();
   }
 }
 
-app.on("window-all-closed", () => {
+app.on('window-all-closed', () => {
   app.quit();
 });
